@@ -1,8 +1,8 @@
 from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 
+from app.api.v1.routes_users import router as users_router
 from app.core.config import settings
 from app.core.database import get_db
 
@@ -12,6 +12,8 @@ app = FastAPI(
     version=settings.version,
     debug=settings.debug,
 )
+
+app.include_router(users_router, prefix="/api/v1")
 
 
 @app.get("/")
@@ -28,6 +30,7 @@ def health_check():
 def db_check(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"message": "database connection successful"}
+
 
 @app.get("/tables-check")
 def tables_check(db: Session = Depends(get_db)):
