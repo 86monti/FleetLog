@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import get_db
@@ -27,3 +28,11 @@ def health_check():
 def db_check(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"message": "database connection successful"}
+
+@app.get("/tables-check")
+def tables_check(db: Session = Depends(get_db)):
+    result = db.execute(
+        text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
+    )
+    tables = [row[0] for row in result]
+    return {"tables": tables}
