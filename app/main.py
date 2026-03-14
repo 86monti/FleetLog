@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.api.v1.routes_auth import router as auth_router
 from app.api.v1.routes_users import router as users_router
 from app.core.config import settings
 from app.core.database import get_db
@@ -14,6 +15,7 @@ app = FastAPI(
 )
 
 app.include_router(users_router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
 
 
 @app.get("/")
