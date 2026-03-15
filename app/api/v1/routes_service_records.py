@@ -1,3 +1,6 @@
+from datetime import date
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
@@ -62,19 +65,40 @@ def list_service_records(
     vehicle_id: int,
     limit: int = Query(default=10, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    provider: Optional[str] = Query(default=None),
+    date_from: Optional[date] = Query(default=None),
+    date_to: Optional[date] = Query(default=None),
+    min_odometer: Optional[int] = Query(default=None, ge=0),
+    max_odometer: Optional[int] = Query(default=None, ge=0),
+    sort: str = Query(default="desc", pattern="^(asc|desc)$"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     get_owned_vehicle(vehicle_id, db, current_user)
 
-    records = (
-        db.query(ServiceRecord)
-        .filter(ServiceRecord.vehicle_id == vehicle_id)
-        .order_by(ServiceRecord.service_date.desc(), ServiceRecord.id.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+    query = db.query(ServiceRecord).filter(ServiceRecord.vehicle_id == vehicle_id)
+
+    if provider:
+        query = query.filter(ServiceRecord.provider.ilike(f"%{provider}%"))
+
+    if date_from:
+        query = query.filter(ServiceRecord.service_date >= date_from)
+
+    if date_to:
+        query = query.filter(ServiceRecord.service_date <= date_to)
+
+    if min_odometer is not None:
+        query = query.filter(ServiceRecord.odometer >= min_odometer)
+
+    if max_odometer is not None:
+        query = query.filter(ServiceRecord.odometer <= max_odometer)
+
+    if sort == "asc":
+        query = query.order_by(ServiceRecord.service_date.asc(), ServiceRecord.id.asc())
+    else:
+        query = query.order_by(ServiceRecord.service_date.desc(), ServiceRecord.id.desc())
+
+    records = query.offset(offset).limit(limit).all()
 
     return records
 
