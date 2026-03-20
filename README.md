@@ -2,7 +2,7 @@
 
 FleetLog is a backend API for managing personal vehicle maintenance records. It allows users to register, authenticate, track multiple vehicles and log detailed service history with filtering and pagination support.
 
-This project is designed to demonstrate real-world backend development practices including authentication, relational data modelling, API design and testing.
+This project demonstrates practical backend engineering concepts including authentication, relational data modelling, API design, containerisation and automated testing.
 
 ---
 
@@ -14,7 +14,7 @@ This project is designed to demonstrate real-world backend development practices
 * **SQLAlchemy ORM**
 * **Alembic (migrations)**
 * **JWT Authentication**
-* **Docker (PostgreSQL)**
+* **Docker (API + Database)**
 * **Pytest (testing)**
 
 ---
@@ -153,68 +153,50 @@ POST /api/v1/vehicles/1/service-records/
 
 ---
 
-## Local Setup
+## Getting Started (Docker)
 
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/fleetlog.git
-cd fleetlog
+git clone https://github.com/86monti/fleetlog-api.git
+cd fleetlog-api
 ```
 
-### 2. Create Virtual Environment
+### 2. Create Environment File
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+cp .env.example .env
 ```
 
-### 3. Install Dependencies
+Update values if needed.
+
+### 3. Start the Full Stack
 
 ```bash
-pip install -r requirements.txt
+docker compose up --build
 ```
 
-### 4. Configure Environment
+This starts:
 
-Create a `.env` file:
+* PostgreSQL (port 5432)
+* API (port 8000)
 
-```
-PROJECT_NAME=FleetLog API
-VERSION=0.1.0
-DEBUG=True
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fleetlog
-SECRET_KEY=your-secret-key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-```
-
-### 5. Run Database (Docker)
+### 4. Run Migrations
 
 ```bash
-docker compose up -d
+docker compose exec api alembic upgrade head
 ```
 
-### 6. Run Migrations
+### 5. Access the API
 
-```bash
-alembic upgrade head
-```
-
-### 7. Start API
-
-```bash
-uvicorn app.main:app --reload
-```
-
-API available at:
-
-* http://127.0.0.1:8000
-* Swagger docs: http://127.0.0.1:8000/docs
+* API: http://127.0.0.1:8000
+* Swagger Docs: http://127.0.0.1:8000/docs
 
 ---
 
 ## Running Tests
+
+Run tests locally:
 
 ```bash
 pytest -v
@@ -236,7 +218,20 @@ tests/
   test_auth.py
   test_vehicles.py
   test_service_records.py
+
+Dockerfile
+docker-compose.yml
 ```
+
+---
+
+## Development Notes
+
+* API and database are fully containerised
+* Uses Alembic for schema migrations
+* PostgreSQL data is persisted via Docker volume
+* Protected endpoints require JWT bearer tokens
+* Users can only access their own vehicles and service records
 
 ---
 
@@ -245,11 +240,12 @@ tests/
 * vehicle summary endpoint (service stats)
 * maintenance reminders
 * CI pipeline (GitHub Actions)
-* full containerised deployment
+* cloud deployment
 
 ---
 
 ## Author
 
 Daniel Hedayati
-- This project is for educational and portfolio purposes.
+
+This project is for educational and portfolio purposes.
